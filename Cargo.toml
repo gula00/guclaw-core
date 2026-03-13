@@ -1,0 +1,22 @@
+[package]
+name = "gula_db_core"
+version = "0.1.0"
+edition = "2021"
+description = "SQLite-backed Rust N-API core for thread/message and app state storage"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "2", default-features = false, features = ["napi8"] }
+napi-derive = "2"
+rusqlite = { version = "0.31", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+imagesize = "0.13"
+
+[build-dependencies]
+napi-build = "2"
+
+[dev-dependencies]

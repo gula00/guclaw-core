@@ -1,0 +1,21 @@
+{
+  "name": "gula-db-core",
+  "version": "0.1.0",
+  "description": "Rust N-API database core for Alma/Gula",
+  "types": "index.d.ts",
+  "scripts": {
+    "build:napi": "napi build --platform",
+    "build:napi:release": "napi build --platform --release"
+  },
+  "files": [
+    "index.d.ts",
+    "index.node",
+    "index.*.node"
+  ],
+  "devDependencies": {
+    "@napi-rs/cli": "^3.2.0"
+  },
+  "napi": {
+    "binaryName": "index"
+  }
+}
