@@ -1,10 +1,12 @@
 use rusqlite::{Connection, OptionalExtension};
 
 use crate::{
-    AppSettingsRecord, ChannelMappingRecord, DistinctChannelRecord, McpOauthTokenRecord,
-    McpServerRecord, MessageRecord, ModelCapabilitiesCacheRecord, PromptAppExecutionRecord,
-    PromptAppRecord, PromptRecord, ProviderModelsCacheRecord, ProviderRecord, SkillStateRecord,
-    ThreadDiffStatsCacheRecord, ThreadLabelRecord, ThreadRecord, WorkspaceRecord,
+    AppSettingsRecord, ChannelMappingRecord, CustomThemeRecord, DistinctChannelRecord,
+    McpOauthTokenRecord, McpServerRecord, MessageRecord, ModelCapabilitiesCacheRecord, PluginPermissionRecord,
+    PluginStateRecord, PromptAppExecutionRecord, PromptAppRecord, PromptRecord,
+    ProviderModelsCacheRecord, ProviderRecord, SkillStateRecord, ThreadDiffStatsCacheRecord,
+    ThreadLabelRecord, ThreadRecord, UsageActivityByDate, UsageMigrationStatusRecord,
+    UsageRecord, UsageStatByModelAndDate, WorkspaceRecord,
 };
 
 pub(crate) fn map_message_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<MessageRecord> {
@@ -70,6 +72,11 @@ pub(crate) const THREAD_LABEL_SELECT_SQL: &str =
     "SELECT id, name, color, sort_order, created_at, updated_at FROM thread_labels";
 pub(crate) const SKILL_STATE_SELECT_SQL: &str =
     "SELECT id, path, enabled, sort_order, updated_at FROM skills";
+pub(crate) const PLUGIN_STATE_SELECT_SQL: &str = "SELECT id, name, version, description, author, icon, source, source_path, install_url, manifest, enabled, settings, installed_at, updated_at FROM plugins";
+pub(crate) const PLUGIN_PERMISSION_SELECT_SQL: &str = "SELECT id, plugin_id, permission, status, granted_at, created_at, updated_at FROM plugin_permissions";
+pub(crate) const USAGE_RECORD_SELECT_SQL: &str = "SELECT id, message_id, thread_id, model, provider_id, date, input_tokens, output_tokens, cached_input_tokens, cache_write_input_tokens, reasoning_tokens, total_tokens, timestamp, created_at FROM usage_records";
+pub(crate) const USAGE_MIGRATION_STATUS_SELECT_SQL: &str = "SELECT id, status, total_count, migrated_count, last_migrated_id, started_at, completed_at, error_message FROM usage_migration_status";
+pub(crate) const CUSTOM_THEME_SELECT_SQL: &str = "SELECT id, name, display_name, type, base_30, base_16, based_on, created_at, updated_at FROM custom_themes";
 
 pub(crate) fn map_provider_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<ProviderRecord> {
     Ok(ProviderRecord {
@@ -298,6 +305,116 @@ pub(crate) fn map_skill_state_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<S
         enabled: row.get(2)?,
         sort_order: row.get(3)?,
         updated_at: row.get(4)?,
+    })
+}
+
+pub(crate) fn map_plugin_state_row(
+    row: &rusqlite::Row<'_>,
+) -> rusqlite::Result<PluginStateRecord> {
+    Ok(PluginStateRecord {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        version: row.get(2)?,
+        description: row.get(3)?,
+        author: row.get(4)?,
+        icon: row.get(5)?,
+        source: row.get(6)?,
+        source_path: row.get(7)?,
+        install_url: row.get(8)?,
+        manifest: row.get(9)?,
+        enabled: row.get(10)?,
+        settings: row.get(11)?,
+        installed_at: row.get(12)?,
+        updated_at: row.get(13)?,
+    })
+}
+
+pub(crate) fn map_plugin_permission_row(
+    row: &rusqlite::Row<'_>,
+) -> rusqlite::Result<PluginPermissionRecord> {
+    Ok(PluginPermissionRecord {
+        id: row.get(0)?,
+        plugin_id: row.get(1)?,
+        permission: row.get(2)?,
+        status: row.get(3)?,
+        granted_at: row.get(4)?,
+        created_at: row.get(5)?,
+        updated_at: row.get(6)?,
+    })
+}
+
+pub(crate) fn map_usage_record_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<UsageRecord> {
+    Ok(UsageRecord {
+        id: row.get(0)?,
+        message_id: row.get(1)?,
+        thread_id: row.get(2)?,
+        model: row.get(3)?,
+        provider_id: row.get(4)?,
+        date: row.get(5)?,
+        input_tokens: row.get(6)?,
+        output_tokens: row.get(7)?,
+        cached_input_tokens: row.get(8)?,
+        cache_write_input_tokens: row.get(9)?,
+        reasoning_tokens: row.get(10)?,
+        total_tokens: row.get(11)?,
+        timestamp: row.get(12)?,
+        created_at: row.get(13)?,
+    })
+}
+
+pub(crate) fn map_usage_stat_row(
+    row: &rusqlite::Row<'_>,
+) -> rusqlite::Result<UsageStatByModelAndDate> {
+    Ok(UsageStatByModelAndDate {
+        model: row.get(0)?,
+        date: row.get(1)?,
+        input_tokens: row.get(2)?,
+        output_tokens: row.get(3)?,
+        cached_tokens: row.get(4)?,
+        cache_write_tokens: row.get(5)?,
+        reasoning_tokens: row.get(6)?,
+        total_tokens: row.get(7)?,
+        message_count: row.get(8)?,
+    })
+}
+
+pub(crate) fn map_usage_activity_row(
+    row: &rusqlite::Row<'_>,
+) -> rusqlite::Result<UsageActivityByDate> {
+    Ok(UsageActivityByDate {
+        date: row.get(0)?,
+        total_tokens: row.get(1)?,
+    })
+}
+
+pub(crate) fn map_usage_migration_status_row(
+    row: &rusqlite::Row<'_>,
+) -> rusqlite::Result<UsageMigrationStatusRecord> {
+    Ok(UsageMigrationStatusRecord {
+        id: row.get(0)?,
+        status: row.get(1)?,
+        total_count: row.get(2)?,
+        migrated_count: row.get(3)?,
+        last_migrated_id: row.get(4)?,
+        started_at: row.get(5)?,
+        completed_at: row.get(6)?,
+        error_message: row.get(7)?,
+    })
+}
+
+pub(crate) fn map_custom_theme_row(
+    row: &rusqlite::Row<'_>,
+) -> rusqlite::Result<CustomThemeRecord> {
+    Ok(CustomThemeRecord {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        display_name: row.get(2)?,
+        r#type: row.get(3)?,
+        base_30: row.get(4)?,
+        base_16: row.get(5)?,
+        based_on: row.get(6)?,
+        created_at: row.get(7)?,
+        updated_at: row.get(8)?,
     })
 }
 

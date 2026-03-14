@@ -415,6 +415,10 @@ mod tests {
                 id: "thread-2".to_string(),
                 title: "Created By Rust".to_string(),
                 model: Some("google:gemini-2.5-pro".to_string()),
+                prompt_app_id: None,
+                tools: None,
+                skill_ids: None,
+                tools_compact_view: None,
                 workspace_id: None,
                 artifact_workspace_id: None,
                 enable_artifacts: None,
@@ -585,6 +589,10 @@ mod tests {
                 id: "thread-dup".to_string(),
                 title: "Duplicate Message".to_string(),
                 model: None,
+                prompt_app_id: None,
+                tools: None,
+                skill_ids: None,
+                tools_compact_view: None,
                 workspace_id: None,
                 artifact_workspace_id: None,
                 enable_artifacts: None,
@@ -743,6 +751,123 @@ mod tests {
     }
 
     #[test]
+    fn search_threads_returns_thread_results_with_context_messages() {
+        let db_path = temp_db_path();
+        setup_minimal_schema(&db_path);
+
+        {
+            let conn = Connection::open(&db_path).expect("failed to open sqlite for seed");
+            conn.execute_batch(
+                "
+                CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+                  message_id UNINDEXED,
+                  thread_id UNINDEXED,
+                  content
+                );
+                ",
+            )
+            .expect("failed to create fts table");
+        }
+
+        let handle = open_db(db_path.clone()).expect("open_db should succeed");
+        handle
+            .create_thread(CreateThreadInput {
+                id: "thread-search".to_string(),
+                title: "Rust Search Thread".to_string(),
+                model: Some("openai:gpt-4o".to_string()),
+                prompt_app_id: None,
+                tools: None,
+                skill_ids: None,
+                tools_compact_view: None,
+                workspace_id: None,
+                artifact_workspace_id: None,
+                enable_artifacts: Some(false),
+                parent_thread_id: None,
+                is_generating: Some(false),
+                reasoning_effort: Some("medium".to_string()),
+                metadata: Some("{}".to_string()),
+                created_at: Some("2026-01-04T00:00:00.000Z".to_string()),
+                updated_at: Some("2026-01-04T00:00:00.000Z".to_string()),
+            })
+            .expect("create_thread should succeed");
+
+        let messages = [
+            (
+                "m1",
+                "2026-01-04T00:00:01.000Z",
+                "{\"id\":\"m1\",\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"before context\"}]}",
+            ),
+            (
+                "m2",
+                "2026-01-04T00:00:02.000Z",
+                "{\"id\":\"m2\",\"role\":\"assistant\",\"parts\":[{\"type\":\"text\",\"text\":\"rust validation keyword\"}]}",
+            ),
+            (
+                "m3",
+                "2026-01-04T00:00:03.000Z",
+                "{\"id\":\"m3\",\"role\":\"assistant\",\"parts\":[{\"type\":\"text\",\"text\":\"after context\"}]}",
+            ),
+        ];
+
+        for (message_id, timestamp, message) in messages {
+            handle
+                .add_message(AddMessageInput {
+                    thread_id: "thread-search".to_string(),
+                    message_id: message_id.to_string(),
+                    message: message.to_string(),
+                    metadata: Some("{}".to_string()),
+                    parent_id: None,
+                    slot_id: None,
+                    depth: None,
+                    parent_tool_call_id: None,
+                    timestamp: Some(timestamp.to_string()),
+                    created_at: Some(timestamp.to_string()),
+                    updated_at: Some(timestamp.to_string()),
+                })
+                .expect("add_message should succeed");
+        }
+
+        handle
+            .rebuild_fts_index(vec![FtsEntryInput {
+                message_id: "thread-search--m2".to_string(),
+                thread_id: "thread-search".to_string(),
+                content: "rust validation keyword".to_string(),
+            }])
+            .expect("rebuild_fts_index should succeed");
+
+        let raw = handle
+            .search_threads(SearchThreadsInput {
+                match_query: "\"rust\" \"validation\"".to_string(),
+                title_query: "validation".to_string(),
+                limit: Some(10),
+                context_size: Some(1),
+                max_messages_per_thread: Some(10),
+            })
+            .expect("search_threads should succeed");
+
+        let parsed: Value = serde_json::from_str(&raw).expect("search_threads should return json");
+        let results = parsed
+            .as_array()
+            .expect("search_threads result should be an array");
+        assert_eq!(results.len(), 1);
+
+        let first = &results[0];
+        assert_eq!(first["id"], "thread-search");
+        assert_eq!(first["title"], "Rust Search Thread");
+        assert_eq!(first["matchCount"], 1);
+
+        let returned_messages = first["messages"]
+            .as_array()
+            .expect("messages should be an array");
+        assert_eq!(returned_messages.len(), 3);
+        assert_eq!(returned_messages[0]["id"], "thread-search--m1");
+        assert_eq!(returned_messages[1]["id"], "thread-search--m2");
+        assert_eq!(returned_messages[2]["id"], "thread-search--m3");
+
+        let _ = fs::remove_file(&db_path);
+    }
+
+    #[test]
     fn message_version_and_metadata_queries_return_rows() {
         let db_path = temp_db_path();
         setup_minimal_schema(&db_path);
@@ -753,6 +878,10 @@ mod tests {
                 id: "thread-vm".to_string(),
                 title: "Version Meta".to_string(),
                 model: None,
+                prompt_app_id: None,
+                tools: None,
+                skill_ids: None,
+                tools_compact_view: None,
                 workspace_id: None,
                 artifact_workspace_id: None,
                 enable_artifacts: None,
@@ -1070,6 +1199,10 @@ mod tests {
                 id: "thread-defaults".to_string(),
                 title: "Defaults".to_string(),
                 model: Some("openai:gpt-4o".to_string()),
+                prompt_app_id: None,
+                tools: None,
+                skill_ids: None,
+                tools_compact_view: None,
                 workspace_id: None,
                 artifact_workspace_id: None,
                 enable_artifacts: None,

@@ -37,6 +37,10 @@ pub struct CreateThreadInput {
     pub id: String,
     pub title: String,
     pub model: Option<String>,
+    pub prompt_app_id: Option<String>,
+    pub tools: Option<String>,
+    pub skill_ids: Option<String>,
+    pub tools_compact_view: Option<bool>,
     pub workspace_id: Option<String>,
     pub artifact_workspace_id: Option<String>,
     pub enable_artifacts: Option<bool>,
@@ -408,6 +412,203 @@ pub struct SkillStateRecord {
     pub enabled: Option<bool>,
     pub sort_order: i32,
     pub updated_at: String,
+}
+
+#[napi(object)]
+pub struct PluginStateRecord {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub description: String,
+    pub author: String,
+    pub icon: Option<String>,
+    pub source: String,
+    pub source_path: String,
+    pub install_url: Option<String>,
+    pub manifest: String,
+    pub enabled: Option<bool>,
+    pub settings: String,
+    pub installed_at: String,
+    pub updated_at: String,
+}
+
+#[napi(object)]
+pub struct UpsertPluginStateInput {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub description: String,
+    pub author: String,
+    pub icon: Option<String>,
+    pub source: String,
+    pub source_path: String,
+    pub install_url: Option<String>,
+    pub manifest: String,
+    pub enabled: Option<bool>,
+    pub settings: Option<String>,
+    pub installed_at: Option<String>,
+    pub updated_at: Option<String>,
+}
+
+#[napi(object)]
+pub struct PluginPermissionRecord {
+    pub id: String,
+    pub plugin_id: String,
+    pub permission: String,
+    pub status: String,
+    pub granted_at: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[napi(object)]
+pub struct UpsertPluginPermissionInput {
+    pub id: Option<String>,
+    pub plugin_id: String,
+    pub permission: String,
+    pub status: String,
+    pub granted_at: Option<String>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
+}
+
+#[napi(object)]
+pub struct UsageRecord {
+    pub id: String,
+    pub message_id: String,
+    pub thread_id: String,
+    pub model: Option<String>,
+    pub provider_id: Option<String>,
+    pub date: String,
+    pub input_tokens: Option<i32>,
+    pub output_tokens: Option<i32>,
+    pub cached_input_tokens: Option<i32>,
+    pub cache_write_input_tokens: Option<i32>,
+    pub reasoning_tokens: Option<i32>,
+    pub total_tokens: Option<i32>,
+    pub timestamp: String,
+    pub created_at: String,
+}
+
+#[napi(object)]
+pub struct SaveUsageRecordInput {
+    pub message_id: String,
+    pub thread_id: String,
+    pub model: Option<String>,
+    pub timestamp: String,
+    pub input_tokens: Option<i32>,
+    pub output_tokens: Option<i32>,
+    pub cached_input_tokens: Option<i32>,
+    pub cache_write_input_tokens: Option<i32>,
+    pub reasoning_tokens: Option<i32>,
+    pub total_tokens: Option<i32>,
+}
+
+#[napi(object)]
+pub struct GetUsageStatsInput {
+    pub from_date: Option<String>,
+    pub to_date: Option<String>,
+    pub provider_id: Option<String>,
+    pub model_id: Option<String>,
+}
+
+#[napi(object)]
+pub struct UsageStatByModelAndDate {
+    pub model: String,
+    pub date: String,
+    pub input_tokens: i32,
+    pub output_tokens: i32,
+    pub cached_tokens: i32,
+    pub cache_write_tokens: i32,
+    pub reasoning_tokens: i32,
+    pub total_tokens: i32,
+    pub message_count: i32,
+}
+
+#[napi(object)]
+pub struct UsageActivityByDate {
+    pub date: String,
+    pub total_tokens: i32,
+}
+
+#[napi(object)]
+pub struct UsageStatsResult {
+    pub by_model_and_date: Vec<UsageStatByModelAndDate>,
+    pub activity_by_date: Vec<UsageActivityByDate>,
+}
+
+#[napi(object)]
+pub struct UsageMigrationStatusRecord {
+    pub id: i32,
+    pub status: String,
+    pub total_count: Option<i32>,
+    pub migrated_count: Option<i32>,
+    pub last_migrated_id: Option<String>,
+    pub started_at: Option<String>,
+    pub completed_at: Option<String>,
+    pub error_message: Option<String>,
+}
+
+#[napi(object)]
+pub struct UpdateUsageMigrationStatusInput {
+    pub status: Option<String>,
+    pub total_count: Option<i32>,
+    pub migrated_count: Option<i32>,
+    pub last_migrated_id: Option<String>,
+    pub started_at: Option<String>,
+    pub completed_at: Option<String>,
+    pub error_message: Option<String>,
+}
+
+#[napi(object)]
+pub struct UsageMigrationBatchItem {
+    pub message_id: String,
+    pub thread_id: String,
+    pub model: Option<String>,
+    pub timestamp: String,
+    pub input_tokens: Option<i32>,
+    pub output_tokens: Option<i32>,
+    pub cached_input_tokens: Option<i32>,
+    pub cache_write_input_tokens: Option<i32>,
+    pub reasoning_tokens: Option<i32>,
+    pub total_tokens: Option<i32>,
+}
+
+#[napi(object)]
+pub struct CustomThemeRecord {
+    pub id: String,
+    pub name: String,
+    pub display_name: String,
+    pub r#type: String,
+    pub base_30: String,
+    pub base_16: String,
+    pub based_on: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[napi(object)]
+pub struct CreateCustomThemeInput {
+    pub id: String,
+    pub name: String,
+    pub display_name: String,
+    pub r#type: String,
+    pub base_30: String,
+    pub base_16: String,
+    pub based_on: Option<String>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
+}
+
+#[napi(object)]
+pub struct UpdateCustomThemeInput {
+    pub id: String,
+    pub display_name: Option<String>,
+    pub r#type: Option<String>,
+    pub base_30: Option<String>,
+    pub base_16: Option<String>,
+    pub based_on: Option<String>,
+    pub updated_at: Option<String>,
 }
 
 #[napi(object)]

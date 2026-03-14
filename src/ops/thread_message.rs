@@ -476,14 +476,18 @@ impl DbHandle {
             conn.execute(
                 &format!(
                     "INSERT INTO chat_threads \
-                     (id, title, model, workspace_id, artifact_workspace_id, enable_artifacts, parent_thread_id, is_generating, reasoning_effort, metadata, created_at, updated_at) \
-                     VALUES (?1, ?2, ?3, ?4, ?5, COALESCE(?6, 0), ?7, COALESCE(?8, 0), ?9, ?10, COALESCE(?11, {now}), COALESCE(?12, {now}))",
+                     (id, title, model, prompt_app_id, tools, skill_ids, tools_compact_view, workspace_id, artifact_workspace_id, enable_artifacts, parent_thread_id, is_generating, reasoning_effort, metadata, created_at, updated_at) \
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, COALESCE(?10, 0), ?11, COALESCE(?12, 0), ?13, ?14, COALESCE(?15, {now}), COALESCE(?16, {now}))",
                     now = now_expr
                 ),
                 params![
                     input.id,
                     input.title,
                     input.model,
+                    input.prompt_app_id,
+                    input.tools,
+                    input.skill_ids,
+                    input.tools_compact_view,
                     input.workspace_id,
                     input.artifact_workspace_id,
                     input.enable_artifacts,
